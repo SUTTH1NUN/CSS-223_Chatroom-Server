@@ -1,0 +1,116 @@
+🧩 Distributed Chatroom System
+A multithreaded, message-queue-based chatroom server and client system designed to explore core operating system concepts such as IPC, concurrency, and synchronization.
+
+📦 Project Overview
+This system simulates a distributed chatroom environment where multiple clients can join rooms, send messages, and interact in real-time. It uses message queues for communication and multithreading for concurrency, with a focus on performance and fault tolerance.
+
+🧠 Learning Outcomes
+- Practical understanding of IPC and multithreading
+- Designing scalable and concurrent systems
+- Implementing fault-tolerant communication protocols
+- Measuring and optimizing system performance
+
+🖥️ Server Responsibilities
+- Control Queue Listener
+Receives commands from clients (e.g., JOIN, SAY, DM, LEAVE).
+- Router Thread
+Parses commands, updates registries, and dispatches tasks to broadcaster threads.
+- Broadcaster Pool
+A thread pool responsible for delivering messages to clients in the appropriate room.
+- Room & Client Registries
+Maintains mappings of rooms to clients and clients to their reply queues.
+- Synchronization
+Uses reader-writer locks to ensure thread-safe access to shared data.
+
+    🧾 Server Command Reference
+    1. JOIN <room_name>
+    Purpose:
+    Connects the client to a specific chatroom. If the room does not exist, it will be created.
+    Server Actions:
+    - Check if <room_name> exists in the Room Registry.
+    - If not, create the room and initialize its member list.
+    - Add the client to the room.
+    - Update the Client Registry to reflect the client’s current room.
+    - Send a confirmation to the client.
+    - Optionally broadcast a “user joined” message to other room members.
+
+    2. SAY <message>
+    Purpose:
+    Broadcasts a message to all clients in the same room.
+    Server Actions:
+    - Retrieve the client’s current room.
+    - Package the message with metadata (sender ID, timestamp).
+    - Dispatch the message to the Broadcaster Pool.
+    - Broadcaster threads deliver the message to all clients in the room.
+    - If the client is not in a room, return an error.
+
+    3. DM <recipient_id> <message>
+    Purpose:
+    Sends a private message to a specific client.
+    Server Actions:
+    - Look up <recipient_id> in the Client Registry.
+    - If found, send the message directly to their reply queue.
+    - Include metadata (sender ID, timestamp, DM flag).
+    - Optionally confirm delivery to the sender.
+    - If not found, return an error to the sender.
+
+    4. WHO
+    Purpose:
+    Lists all clients currently in the same room.
+    Server Actions:
+    - Retrieve the client’s current room.
+    - Collect a list of all active members in that room.
+    - Send the list back to the client’s reply queue.
+    - If the client is not in a room, return an error.
+
+    5. LEAVE
+    Purpose:
+    Removes the client from their current room.
+    Server Actions:
+    - Retrieve the client’s current room.
+    - Remove the client from the room’s member list.
+    - Update the Client Registry to reflect no active room.
+    - Send a confirmation to the client.
+    - Optionally broadcast a “user left” message to remaining members.
+    - If the room becomes empty, delete it.
+
+    6. QUIT
+    Purpose:
+    Disconnects the client from the system entirely.
+    Server Actions:
+    - Remove the client from any active room.
+    - Delete the client’s entry from the Client Registry.
+    - Close and clean up the client’s reply queue.
+    - Send a final confirmation or shutdown message.
+    - Optionally log the disconnection for auditing.
+
+💻 Client Responsibilities
+- Reply Queue Creation
+Each client creates a personal reply queue to receive messages.
+- Sender Thread
+Captures user input and sends commands to the server via the control queue.
+- Receiver Thread
+Listens to the reply queue and displays incoming messages.
+- Connection Monitoring
+Optional heartbeat mechanism to detect disconnection or inactivity.
+
+⚠️ Error Handling
+| Reply Queue Overflow  | Block, drop message with warning, or retry with buffer        | 
+| Client Disconnection  | Detect via heartbeat, clean up registries, close reply queue  | 
+| Invalid Commands      | Validate syntax and respond with error messages               | 
+| Concurrency Conflicts | Use locks/semaphores to prevent race conditions               | 
+| Message Loss/Delay    | Use timestamps, sequence numbers, or ACK/retry mechanisms     | 
+
+📈 Performance Considerations
+- Tune the number of broadcaster threads to optimize throughput.
+- Measure latency and message delivery rate under different loads.
+- Analyze bottlenecks in queue handling and thread scheduling.
+
+✅ Evaluation Criteria
+| Correctness               | 30 | Functional protocol, accurate message delivery                   | 
+| IPC & Concurrency         | 30 | Effective use of message queues, threads, and synchronization    | 
+| Non-functional Features   | 20 | Robust error handling, performance tuning                        | 
+| Code Quality              | 20 | Clean structure, documentation, comments, and performance report |  
+
+
+

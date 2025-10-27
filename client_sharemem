@@ -1,0 +1,114 @@
+#include <windows.h>
+#include <iostream>
+#include <string>
+#include <thread>
+#include <chrono>
+
+const int SHM_SIZE = 8192;
+const char* SHM_NAME = "Global\\ChatSharedMemory";
+const int MAX_ROOMS = 10;
+const int MAX_CLIENTS = 10;
+const int MAX_NAME_LEN = 32;
+const int MAX_MSG_LEN = 256;
+
+struct ChatSharedMemory {
+    char room_names[MAX_ROOMS][MAX_NAME_LEN];
+    int room_count;
+    char client_names[MAX_CLIENTS][MAX_NAME_LEN];
+    int client_count;
+    char messages[MAX_ROOMS][MAX_MSG_LEN];
+    char sender_names[MAX_ROOMS][MAX_NAME_LEN]; // คนที่ส่งข้อความล่าสุดในแต่ละห้อง
+    char command[256];
+    char command_sender[MAX_NAME_LEN];
+    int selected_room;
+};
+
+void listen_for_messages(ChatSharedMemory* shm, int room_index, std::string my_name) {
+    std::string last_msg;
+    std::string last_sender;
+    while (true) {
+        std::string msg = shm->messages[room_index];
+        std::string sender = shm->sender_names[room_index];
+        if (!msg.empty() && (msg != last_msg || sender != last_sender)) {
+            if (sender != my_name) { // ไม่ต้องโชว์ข้อความของตัวเองซ้ำ
+                std::cout << "\n[" << shm->room_names[room_index] << "] "
+                          << sender << ": " << msg << std::endl << "> ";
+                std::cout.flush();
+            }
+            last_msg = msg;
+            last_sender = sender;
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    }
+}
+
+int main() {
+    HANDLE hMapFile = OpenFileMappingA(FILE_MAP_ALL_ACCESS, FALSE, SHM_NAME);
+    if (hMapFile == NULL) {
+        std::cerr << "Could not open file mapping object (" << GetLastError() << ").\n";
+        return 1;
+    }
+
+    ChatSharedMemory* shm = (ChatSharedMemory*)MapViewOfFile(
+        hMapFile, FILE_MAP_ALL_ACCESS, 0, 0, SHM_SIZE);
+
+    if (shm == NULL) {
+        std::cerr << "Could not map view of file (" << GetLastError() << ").\n";
+        CloseHandle(hMapFile);
+        return 1;
+    }
+
+    std::string name, room;
+    std::cout << "Enter your name: ";
+    std::getline(std::cin, name);
+    std::cout << "Enter room name (create or join): ";
+    std::getline(std::cin, room);
+
+    // ส่งคำสั่งสร้าง/เข้าห้อง
+    std::string cmd = "set_name:" + name;
+    strncpy(shm->command, cmd.c_str(), 255);
+    strncpy(shm->command_sender, name.c_str(), MAX_NAME_LEN - 1);
+
+    Sleep(200);
+    cmd = "create_or_join_room:" + room;
+    strncpy(shm->command, cmd.c_str(), 255);
+    strncpy(shm->command_sender, name.c_str(), MAX_NAME_LEN - 1);
+
+    Sleep(500);
+
+    // หา index ห้องที่ join
+    int room_index = -1;
+    for (int i = 0; i < shm->room_count; ++i) {
+        if (room == shm->room_names[i]) {
+            room_index = i;
+            break;
+        }
+    }
+
+    if (room_index == -1) {
+        std::cerr << "Room join failed.\n";
+        return 1;
+    }
+
+    std::cout << "Joined room '" << room << "'. Type your message ('exit' to quit):" << std::endl;
+
+    // สร้าง thread สำหรับฟังข้อความใหม่
+    std::thread listener(listen_for_messages, shm, room_index, name);
+
+    std::string msg;
+    while (true) {
+        std::cout << "> ";
+        std::getline(std::cin, msg);
+        if (msg == "exit") break;
+
+        std::string send_cmd = "send:" + msg;
+        strncpy(shm->command, send_cmd.c_str(), 255);
+        strncpy(shm->command_sender, name.c_str(), MAX_NAME_LEN - 1);
+        Sleep(200);
+    }
+
+    listener.detach();
+    UnmapViewOfFile(shm);
+    CloseHandle(hMapFile);
+    return 0;
+}

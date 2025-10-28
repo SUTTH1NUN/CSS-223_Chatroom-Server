@@ -24,23 +24,18 @@ void SenderThread::parseAndSend(const std::string& cmd) {
     std::string token;
     iss >> token;
 
-    std::string temp;  // ใช้เก็บข้อความแบบ string ชั่วคราว
+    std::string temp;  // เก็บข้อความหลัง command
 
     if (token == "/create") {
         msg.type = CMD_CREATE;
         iss >> msg.target;
     }
-    else if (token == "/list") msg.type = CMD_LIST;
+    else if (token == "/list") {
+        msg.type = CMD_LIST;
+    }
     else if (token == "/join") {
         msg.type = CMD_JOIN;
         iss >> msg.target;
-    }
-    else if (token == "/exit") msg.type = CMD_EXIT;
-    else if (token == "/say") {
-        msg.type = CMD_SAY;
-        std::getline(iss, temp);
-        if (!temp.empty() && temp[0] == ' ') temp.erase(0, 1);
-        strncpy(msg.text, temp.c_str(), sizeof(msg.text) - 1);
     }
     else if (token == "/dm") {
         msg.type = CMD_DM;
@@ -49,10 +44,25 @@ void SenderThread::parseAndSend(const std::string& cmd) {
         if (!temp.empty() && temp[0] == ' ') temp.erase(0, 1);
         strncpy(msg.text, temp.c_str(), sizeof(msg.text) - 1);
     }
-    else if (token == "/who") msg.type = CMD_WHO;
-    else if (token == "/leave") msg.type = CMD_LEAVE;
-    else msg.type = CMD_UNKNOWN;
+    else if (token == "/say") {
+        msg.type = CMD_SAY;
+        std::getline(iss, temp);
+        if (!temp.empty() && temp[0] == ' ') temp.erase(0, 1);
+        strncpy(msg.text, temp.c_str(), sizeof(msg.text) - 1);
+    }
+    else if (token == "/who") {
+        msg.type = CMD_WHO;
+    }
+    else if (token == "/leave") {
+        msg.type = CMD_LEAVE;
+    }
+    else if (token == "/exit") {
+        msg.type = CMD_EXIT;
+    }
+    else {
+        std::cout << "[Client] Unknown command.\n";
+        return;
+    }
 
     mq_send(controlQueue, (const char*)&msg, sizeof(Message), 0);
 }
-

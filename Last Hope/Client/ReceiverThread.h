@@ -1,11 +1,14 @@
-#pragma once
+#ifndef RECEIVER_THREAD_H
+#define RECEIVER_THREAD_H
+
 #include <mqueue.h>
 
 class ReceiverThread {
 private:
-    mqd_t replyQueue;
-
+    mqd_t mq;
 public:
-    explicit ReceiverThread(mqd_t replyQueue);
-    void run();
+    ReceiverThread(mqd_t queue) : mq(queue) {}
+    void* run(); 
 };
+
+#endif

@@ -28,7 +28,7 @@ const char* SERVER_TITLE = "Chat Server";
 #define RSP_JOIN_SUCCESS 203 // (ถ้า "" = Lobby)
 #define RSP_ERROR        204
 
-// --- Client State ---
+// --- Client State --- 
 const char* CLIENT_CLASS = "ChatClientWindowClass";
 HWND g_serverHwnd = NULL;
 HWND g_clientHwnd = NULL;

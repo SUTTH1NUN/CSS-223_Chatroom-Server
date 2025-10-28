@@ -1,147 +1,118 @@
-#include <iostream>
+// server.cpp
+#include <bits/stdc++.h>
 #include <mqueue.h>
-#include <cstring>
-#include <thread>
-#include <mutex>
-#include <unordered_map>
-#include <unordered_set>
-#include "../message.h"
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <unistd.h>
+using namespace std;
 
-const char* CONTROL_QUEUE = "/control_queue";
-const size_t MAX_SIZE = 1024;
+const char* CONTROL_QUEUE = "/chat_control";
+const long MQ_MSGSIZE = 1024;
+mqd_t mq;
 
-// Room Registry: room -> set of client usernames
-std::unordered_map<std::string, std::unordered_set<std::string>> roomRegistry;
-// Client Registry: username -> reply queue name
-std::unordered_map<std::string, std::string> clientRegistry;
-std::mutex registry_mutex;
+struct Room {
+    string name;
+    vector<string> members;
+};
 
-// helper: send message to specific queue
-bool send_to_queue(const std::string& queue_name, const std::string& payload) {
-    mqd_t mq = mq_open(queue_name.c_str(), O_WRONLY);
-    if (mq == (mqd_t)-1) {
-        perror("mq_open (send)");
-        return false;
-    }
-    mq_send(mq, payload.c_str(), payload.size() + 1, 0);
+void handle_sigint(int) {
+    cout << "\n[Server] Caught SIGINT, cleaning up..." << endl;
     mq_close(mq);
-    return true;
-}
-
-// broadcast to all clients in a room
-void broadcast(const std::string& room, const std::string& sender, const std::string& text) {
-    std::lock_guard<std::mutex> lk(registry_mutex);
-
-    auto roomIt = roomRegistry.find(room);
-    if (roomIt == roomRegistry.end()) {
-        std::cerr << "[Server] Room not found: " << room << std::endl;
-        return;
-    }
-
-    for (const auto& user : roomIt->second) {
-        //skip own message
-        if (user == sender) continue;
-
-        auto clientIt = clientRegistry.find(user);
-        if (clientIt != clientRegistry.end()) {
-            std::string msg = "SAY|" + sender + "|" + room + "|" + text;
-            send_to_queue(clientIt->second, msg);
-        }
-    }
-
-    std::cout << "[Server] Broadcast in room " << room
-              << " from " << sender << ": " << text << std::endl;
-}
-
-// send direct message
-void direct_message(const std::string& sender, const std::string& target, const std::string& text) {
-    std::lock_guard<std::mutex> lk(registry_mutex);
-    auto it = clientRegistry.find(target);
-    if (it == clientRegistry.end()) {
-        std::cerr << "[Server] DM failed: target not found -> " << target << std::endl;
-        // แจ้งกลับ sender ว่าส่งไม่ได้
-        auto its = clientRegistry.find(sender);
-        if (its != clientRegistry.end()) {
-            send_to_queue(its->second, "SYSTEM|server||User " + target + " not found");
-        }
-        return;
-    }
-
-    std::string msg = "DM|" + sender + "|" + target + "|" + text;
-    send_to_queue(it->second, msg);
-    std::cout << "[Server] Direct message " << sender << " -> " << target << ": " << text << std::endl;
-}
-
-// router thread
-void router_thread() {
-    mqd_t mq;
-    char buffer[MAX_SIZE];
-    mq = mq_open(CONTROL_QUEUE, O_RDONLY);
-    if (mq == (mqd_t)-1) {
-        perror("mq_open (router)");
-        exit(1);
-    }
-
-    std::cout << "[Router] Started, waiting for messages...\n";
-
-    while (true) {
-        memset(buffer, 0, MAX_SIZE);
-        ssize_t bytes = mq_receive(mq, buffer, MAX_SIZE, nullptr);
-        if (bytes >= 0) {
-            std::string msg(buffer);
-            std::cout << "[Router] Received: " << msg << std::endl;
-
-            // parse message: TYPE|sender|target|text
-            size_t p1 = msg.find('|');
-            size_t p2 = msg.find('|', p1+1);
-            size_t p3 = msg.find('|', p2+1);
-
-            std::string type   = msg.substr(0, p1);
-            std::string sender = msg.substr(p1+1, p2-p1-1);
-            std::string target = msg.substr(p2+1, p3-p2-1);
-            std::string text   = msg.substr(p3+1);
-
-            if (type == "JOIN") {
-                // add to room
-                std::lock_guard<std::mutex> lk(registry_mutex);
-                roomRegistry[target].insert(sender);
-                clientRegistry[sender] = "/reply_" + sender;
-                std::cout << "[Server] " << sender << " joined " << target << std::endl;
-            }
-            else if (type == "SAY") {
-                broadcast(target, sender, text);
-            }else if (type == "DM"){
-                direct_message(sender, target, text);
-            }
-
-        } else {
-            perror("mq_receive");
-        }
-    }
-    mq_close(mq);
+    mq_unlink(CONTROL_QUEUE);
+    cout << "[Server] Queue removed. Exiting.\n";
+    exit(0);
 }
 
 int main() {
-    // set queue attr
-    struct mq_attr attr;
+    signal(SIGINT, handle_sigint); 
+
+    struct mq_attr attr{};
     attr.mq_flags = 0;
     attr.mq_maxmsg = 10;
-    attr.mq_msgsize = MAX_SIZE;
+    attr.mq_msgsize = MQ_MSGSIZE;
     attr.mq_curmsgs = 0;
 
     mq_unlink(CONTROL_QUEUE);
-    mqd_t mq = mq_open(CONTROL_QUEUE, O_CREAT | O_RDWR, 0644, &attr);
+    mq = mq_open(CONTROL_QUEUE, O_CREAT | O_RDONLY, 0666, &attr);
     if (mq == (mqd_t)-1) {
-        perror("mq_open (server)");
-        exit(1);
+        perror("mq_open server");
+        return 1;
     }
+
+    cout << "[Server] Started. Waiting for clients...\n";
+
+    map<string, Room> rooms; // room name -> Room struct
+    char buf[MQ_MSGSIZE];
+
+    while (true) {
+        ssize_t bytes = mq_receive(mq, buf, MQ_MSGSIZE, nullptr);
+        if (bytes < 0) {
+            this_thread::sleep_for(chrono::milliseconds(100));
+            continue;
+        }
+
+        string msg(buf);
+        vector<string> parts;
+        string token;
+        stringstream ss(msg);
+        while (getline(ss, token, '|')) parts.push_back(token);
+        if (parts.empty()) continue;
+
+        string cmd = parts[0];
+        string reply_q;
+        if (parts.size() >= 2) reply_q = parts[1];
+
+        auto send_reply = [&](const string& text) {
+            mqd_t client_q = mq_open(reply_q.c_str(), O_WRONLY);
+            if (client_q != (mqd_t)-1) {
+                mq_send(client_q, text.c_str(), text.size() + 1, 0);
+                mq_close(client_q);
+            }
+        };
+
+        if (cmd == "CREATE" && parts.size() >= 3) {
+            string room_name = parts[2];
+            if (rooms.count(room_name)) {
+                send_reply("SYSTEM|Room already exists: " + room_name);
+            } else {
+                rooms[room_name] = Room{room_name, {}};
+                send_reply("SYSTEM|Room created: " + room_name);
+                cout << "[Server] Created room: " << room_name << endl;
+            }
+        } 
+        else if (cmd == "LIST") {
+            string result = "LIST|";
+            for (auto &r : rooms) {
+                result += r.first + " ";
+            }
+            send_reply(result);
+        }
+        else if (cmd == "JOIN" && parts.size() >= 4) {
+            string room_name = parts[2];
+            string username = parts[3];
+            if (!rooms.count(room_name)) {
+                send_reply("SYSTEM|Room does not exist: " + room_name);
+            } else {
+                auto &members = rooms[room_name].members;
+                if (find(members.begin(), members.end(), username) == members.end()) {
+                    members.push_back(username);
+                    send_reply("SYSTEM|Joined room: " + room_name);
+                    cout << "[Server] " << username << " joined " << room_name << endl;
+                } else {
+                    send_reply("SYSTEM|You are already in room: " + room_name);
+                }
+            }
+        }
+        else if (cmd == "EXIT") {
+            send_reply("SYSTEM|Goodbye!");
+            cout << "[Server] A client disconnected.\n";
+        }
+        else {
+            send_reply("SYSTEM|Unknown command.");
+        }
+    }
+
     mq_close(mq);
-
-    std::cout << "[Server] Control queue created: " << CONTROL_QUEUE << std::endl;
-
-    std::thread router(router_thread);
-    router.join();
-
     mq_unlink(CONTROL_QUEUE);
     return 0;
 }

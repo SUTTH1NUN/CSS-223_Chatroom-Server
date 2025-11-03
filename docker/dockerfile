@@ -1,0 +1,7 @@
+# Dockerfile
+FROM gcc:latest
+WORKDIR /app
+COPY server.cpp .
+# คอมไพล์โค้ดและลิงก์กับไลบรารี Realtime (librt) สำหรับ Message Queue
+RUN g++ -std=c++17 server.cpp -o chat_server -lrt
+CMD ["./chat_server"]

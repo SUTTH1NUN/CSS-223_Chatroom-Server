@@ -10,11 +10,11 @@
     </li>
     <li><a href="#getting-started">Getting Started</a>
       <ul>
+        <li><a href="#required">Required</a></li>
         <li><a href="#installation">Installation</a></li>
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#performance-testing">Performance Testing</a></li>
     <li><a href="#team-member">Team Members</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -29,11 +29,20 @@
 
 ## Getting Started
 
+### Required
+docker
+
 ### Installation
+1. Download this repo.
+2. Extac file
+3. Run docker compose.yaml
+4. Open file server directory and use gcc:......................
+5. Open file server directory and use gcc:...................... รหือcomplie 2 เปน exe
 
 ## Usage
-
-## Road Map
+1. Run file server
+2. Run Client
+  2.1 Set username
 
 ## Performance Testing
 

@@ -97,19 +97,24 @@ void receiverThread() {
 // ฟังก์ชันส่งคำสั่งไปยัง Server
 // ------------------------
 bool sendCommand(const string& cmd, const string& payload) {
-    mqd_t server_mq = mq_open(CONTROL_QUEUE, O_WRONLY);
+    mqd_t server_mq = mq_open(CONTROL_QUEUE, O_WRONLY | O_NONBLOCK);
     if (server_mq == (mqd_t)-1) {
-        perror("[CLIENT ERROR] mq_open control queue");
+        if (errno == ENOENT) {
+            cerr << "[ERROR] Server queue not found. Server might not be running.\n";
+        } else if (errno == ENXIO) {
+            cerr << "[ERROR] No server process currently listening on queue.\n";
+        } else {
+            perror("[CLIENT ERROR] mq_open control queue");
+        }
         g_running = false;
-        return false;
+        exit(EXIT_FAILURE);
     }
 
     string message = cmd + "|" + g_clientQueueName + payload;
-    
     if (mq_send(server_mq, message.c_str(), message.size() + 1, 0) == -1) {
         perror("[CLIENT ERROR] mq_send");
         mq_close(server_mq);
-        return false;
+        exit(EXIT_FAILURE);
     }
 
     mq_close(server_mq);
@@ -144,6 +149,14 @@ int main() {
 
     thread receiver(receiverThread);
     
+    thread heartbeat([](){
+        while (g_running) {
+            this_thread::sleep_for(chrono::seconds(5)); // ส่งทุก 5 วิ
+            if (!g_running) break;
+            sendCommand("PING", "|" + g_myName);
+        }
+    }); 
+
     this_thread::sleep_for(chrono::milliseconds(100));
 
     cout << "\n--- Commands ---\n";
@@ -213,6 +226,9 @@ int main() {
                     sendCommand("DM", "|" + target + "|" + g_myName + "|" + msg_part);
                 }
             }
+            else if (cmd == "/members") {
+                sendCommand("MEMBERS", "|" + g_myName);
+            }
             else {
                  cout << "[ERROR] Unknown command: " << cmd << endl;
             }
@@ -228,9 +244,9 @@ int main() {
         }
     }
     
-    if (receiver.joinable()) {
-        receiver.join();
-    }
+    g_running = false;
+    if (receiver.joinable()) receiver.join();
+    if (heartbeat.joinable()) heartbeat.join();
     
     cout << "\n[CLIENT] Disconnected" << endl;
     return 0;

@@ -12,6 +12,7 @@
 #include <atomic>
 #include <random>
 #include <algorithm>
+<<<<<<< Updated upstream
 
 // ===== Protocol (must match server) =====
 #define CMD_REGISTER     100
@@ -29,6 +30,42 @@
 #define RSP_ROOM_LIST    202
 #define RSP_JOIN_SUCCESS 203
 #define RSP_ERROR        204
+=======
+#include <chrono>
+#include <iomanip>
+#include "../Shared/message.h"
+#include <bits/stdc++.h>
+using namespace std;
+mqd_t mq;
+// =============================
+//   GLOBAL STATE
+// =============================
+map<string, vector<string>> rooms;   // room -> members
+map<string, string> userRoom;        // user -> room
+map<string, bool> activeUsers;       // username -> logged in?
+
+// =============================
+//   handlde server close signal for cleanup
+// =============================
+void handle_sigint(int) {
+    cout << "\n[Server] Caught SIGINT, cleaning up..." << endl;
+    mq_close(mq);
+    mq_unlink(CONTROL_QUEUE);
+    cout << "[Server] Queue removed. Exiting.\n";
+    exit(0);
+}
+
+
+// =============================
+//   COLOR + TIMESTAMP LOGGING
+// =============================
+#define GREEN "\033[1;32m"
+#define CYAN  "\033[1;36m"
+#define YELLOW "\033[1;33m"
+#define MAGENTA "\033[1;35m"
+#define RED "\033[1;31m"
+#define RESET "\033[0m"
+>>>>>>> Stashed changes
 
 // ===== MSMQ queue path =====
 static const wchar_t* SERVER_QUEUE_PATH = L".\\private$\\chat_server";
@@ -46,6 +83,7 @@ void ShowPrompt() {
     std::cout.flush();
 }
 
+<<<<<<< Updated upstream
 HRESULT EnsurePrivateQueue(const std::wstring& path) {
     // If exists and openable, return S_OK
     WCHAR fmt[256]; DWORD len = 256;
@@ -54,6 +92,23 @@ HRESULT EnsurePrivateQueue(const std::wstring& path) {
         QUEUEHANDLE h = nullptr;
         hr = MQOpenQueue(fmt, MQ_RECEIVE_ACCESS, MQ_DENY_NONE, &h);
         if (SUCCEEDED(hr)) { MQCloseQueue(h); return S_OK; }
+=======
+void logLogin(const string &msg)  { cout << timestamp() << GREEN << "[LOGIN] " << RESET << msg << endl; }
+void logInfo(const string &msg)   { cout << timestamp() << CYAN  << "[INFO]  " << RESET << msg << endl; }
+void logWarn(const string &msg)   { cout << timestamp() << YELLOW << "[WARN]  " << RESET << msg << endl; }
+void logDM(const string &msg)     { cout << timestamp() << MAGENTA << "[DM]    " << RESET << msg << endl; }
+void logLeave(const string &msg)  { cout << timestamp() << RED << "[LEAVE] " << RESET << msg << endl; }
+
+// =============================
+//   SEND MESSAGE TO USER
+// =============================
+void sendTo(const string& user, const string& text) {
+    string qname = "/reply_" + user;
+    mq = mq_open(qname.c_str(), O_WRONLY);
+    if (mq == (mqd_t)-1) {
+        logWarn("Cannot send to " + user + " (queue missing)");
+        return;
+>>>>>>> Stashed changes
     }
     // Create queue
     PROPID aPropId[2]; MQPROPVARIANT aPropVar[2];
@@ -149,9 +204,15 @@ BOOL WINAPI ConsoleCtrlHandler(DWORD type) {
 }
 
 int main() {
+<<<<<<< Updated upstream
     SetConsoleOutputCP(CP_UTF8);
     SetConsoleCP(CP_UTF8);
     SetConsoleCtrlHandler(ConsoleCtrlHandler, TRUE);
+=======
+    signal(SIGINT, handle_sigint); 
+
+    cout << GREEN << "[Server] Starting chat server..." << RESET << endl;
+>>>>>>> Stashed changes
 
     // 1) สร้างคิวตอบกลับของ client
     std::mt19937_64 rng{ std::random_device{}() };

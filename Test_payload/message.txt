@@ -1,0 +1,5 @@
+Hello from test client
+This is a performance test
+How are you today?
+Message queue system test
+Last line!

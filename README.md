@@ -71,7 +71,7 @@ This project was successfully completed thanks to the support and guidance of ma
 We would like to express our sincere gratitude to:
 <ul>
   <li>Assoc. Prof. Chookiat Warasuchip, instructor of CSS223 Operating System, for valuable guidance and feedback.</li>
-  <liOur teammates, for their dedication and collaboration throughout the project.></li>
+  <li>Our teammates, for their dedication and collaboration throughout the project.></li>
   <li>Online resources and documentation, which helped deepen our understanding of Message Queues, Threads, and Socket Programming.</li>
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

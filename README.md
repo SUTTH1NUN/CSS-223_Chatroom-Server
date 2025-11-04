@@ -23,11 +23,13 @@
 </details>
 
 ## About the Project
-โครงงานนี้เป็นส่วนหนึ่งของวิชา **CSS223 Operation System** โดยการทำระบบ **Chatroom Server** ด้วย **Message Queue** และ **Threaded Router** ในการทำงาน //ยังไม่เสร็จจ้า
+This project is part of the CSS223 Operating System course.
+The goal of this project is to develop a Chatroom Server that enables real-time communication between clients using Message Queue and Threaded Router mechanisms. //ยังไม่เสร็จจ้า
 
 ### Built With
 
 ## Getting Started
+Follow these instructions to get a copy of the project up and running on your local machine.
 
 ### Required
 docker
@@ -55,13 +57,13 @@ docker
 </ul>
 
 ## Acknowledgments
-โครงงานนี้สำเร็จลุล่วงได้ด้วยความช่วยเหลือและคำแนะนำจากหลายฝ่าย ผู้จัดทำขอขอบคุณเป็นอย่างยิ่งต่อ
+This project was successfully completed thanks to the support and guidance of many people.
+We would like to express our sincere gratitude to:
 <ul>
-  <li>ร.ศ. ชูเกียรติ วรสุชีพ อาจารย์ผู้สอนวิชา CSS223 Operating Systemที่ให้คำแนะนำ ความรู้ และแนวทางในการพัฒนาโครงงาน</li>
-  <li>สมาชิกในทีม ที่ร่วมกันออกแบบ ทดสอบ และแก้ไขปัญหาต่าง ๆ ตลอดกระบวนการทำงาน</li>
-  <li>เอกสารอ้างอิงและแหล่งข้อมูลจากเว็บไซต์ต่าง ๆ ที่ช่วยให้เข้าใจการทำงานของ Message Queue, Thread, และ Socket Programming มากยิ่งขึ้น</li>
-</ul>
-
+  <li>Assoc. Prof. Chookiat Warasuchip, instructor of CSS223 Operating System, for valuable guidance and feedback.</li>
+  <liOur teammates, for their dedication and collaboration throughout the project.></li>
+  <li>Online resources and documentation, which helped deepen our understanding of Message Queues, Threads, and Socket Programming.</li>
+                                                                                                                                     
 ## References
 - []()
 - []()

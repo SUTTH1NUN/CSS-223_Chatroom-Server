@@ -50,12 +50,16 @@ The system uses:
 </ul>
 This design demonstrates key OS concepts — IPC, synchronization, and concurrency — while keeping the system simple, modular, and scalable.
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
 ## Getting Started
 Follow these instructions to get a copy of the project up and running on your local machine.
 
 ### Required
 * Docker
 * g++ Version 14.1.0
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Installation
 1. Open terminal.

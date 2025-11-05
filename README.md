@@ -58,19 +58,28 @@ cd CSS-223_Chatroom-Server
 4. Run the following commands to build the container using Docker.
 ```sh
 docker build -t myapp:latest .
-docker run --name myapp-container myapp:latest
+```
+```
+docker run -it myapp:latest bash
 ```
 
 5. Compile the server and client using these commands in the terminal.
-```Server
-g++ -std=c++17 server.cpp -o server -lrt -pthread
 ```
-```Client
-g++ -std=c++17 client.cpp -o client -lrt -pthread
+g++ -std=c++17 ./server/server.cpp -o ./exe/server -lrt -pthread
 ```
+```
+g++ -std=c++17 ./client/client.cpp -o ./exe/client -lrt -pthread
+```
+
+6. Open another terminal and using this command
+```
+docker exec -it <docker container ID> bash
+```
+> To check container ID use "docker ps"
+7. 
 ```sh
-./server
-./client
+./exe/server
+./exe/client
 ```
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
@@ -87,7 +96,18 @@ Once the server is running, Each client can connect to the server, set their use
 8. /test               - Run test program
 9. /exit               - Disconnect and Quit
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+<p align="right">(<a href="#readme-top">back to top</a>)</p> 
+
+### How to test throungput
+1. Go to root directory.
+```
+cd ~
+```
+2. Go to Test_Throughtput directory
+```
+cd Test_Throughtput
+```
+3.
 
 ## Performance Testing
 

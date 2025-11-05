@@ -107,27 +107,23 @@ Once the server is running, Each client can connect to the server, set their use
 <p align="right">(<a href="#readme-top">back to top</a>)</p> 
 
 ### How to test throungput
-1. Go to root directory.
-```
-cd ~
-```
 
-2. Go to Test_Throughtput directory
+1. Go to Test_Throughtput directory
 ```
 cd Test_Throughtput
 ```
 
-3. Change file to Unix line endings
+2. Change file to Unix line endings
 ```
 dos2unix payload.sh
 ```
 
-4. Run payload.sh
+3. Run payload.sh
 ```
 bash payload.sh
 ```
 
-5. When you finish testing and want to run the server or client again, use:
+4. When you finish testing and want to run the server or client again, use:
 ```
 ./exe/server
 ./exe/client
@@ -136,6 +132,13 @@ bash payload.sh
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Performance Testing
+
+<p align="center" width="50%"><img width="800" height="500" alt="TestGraph" src="https://github.com/user-attachments/assets/f2977b97-ad92-4f02-af99-167aa4b43bf5" /></p>
+<p align="center"><i>A graph showing the relationship between throughput and the number of threads.</i></p>
+This graph shows the relationship between server throughput and the number of threads.
+From the plot, the throughput is highest when using 1 thread, reaching about 12,125.97 msg/s.
+As the number of threads increases (to 2, 4, and 8), the throughput slightly decreases and remains almost constant.
+This suggests that increasing the number of threads does not improve performance in this case — and may even cause some overhead or contention that reduces efficiency.
 
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>

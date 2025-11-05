@@ -45,7 +45,7 @@ Follow these instructions to get a copy of the project up and running on your lo
 
 ### Installation
 1. Download this repository.
-```sh
+```
 git clone https://github.com/SUTTH1NUN/CSS-223_Chatroom-Server.git
 ```
 

@@ -1,8 +1,4 @@
-# 3. เริ่ม Server (ใน Background)
-    echo "[Server] Starting server with $N_THREADS threads..."
-    SERVER_LOG="log/server_${N_THREADS}threads_${TIMESTAMP}.log"
-    stdbuf -oL ./server_new $N_THREADS > "$SERVER_LOG" 2>&1 &
-    SERVER_PID=$!#!/bin/bash
+#!/bin/bash
 
 # --- การตั้งค่า Test Case ---
 THREAD_COUNTS="1 2 4 8"
@@ -22,13 +18,13 @@ echo ""
 echo "Compiling server and load_tester..."
 
 # คอมไพล์ Server
-if ! g++ -o server_new server_new.cpp -lrt -pthread -std=c++17; then
-    echo "Failed to compile server.cpp. Aborting."
+if ! g++ -o ../exe/server ../server/server.cpp -lrt -pthread -std=c++17; then
+    echo "Failed to compile server_new.cpp. Aborting."
     exit 1
 fi
 
 # คอมไพล์ Load Tester
-if ! g++ -o load_tester load_tester.cpp -lrt -pthread -std=c++17; then
+if ! g++ -o ../exe/load_tester load_tester.cpp -lrt -pthread -std=c++17; then
     echo "Failed to compile load_tester.cpp. Aborting."
     exit 1
 fi
@@ -40,8 +36,6 @@ echo "---------------------------------"
 # 2. เริ่มการทดสอบ
 # ---------------------------------
 TOTAL_MESSAGES=$(($NUM_CLIENTS * $MESSAGES_PER_CLIENT))
-
-# 🔧 สร้าง timestamp สำหรับ result file
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
 RESULT_FILE="result/throughput_${TIMESTAMP}.txt"
 
@@ -64,58 +58,55 @@ echo ""
     echo ""
 } > "$RESULT_FILE"
 
-# วนลูปตามจำนวน Thread ที่กำหนด
+# ---------------------------------
+# 3. ทดสอบแต่ละจำนวน Thread
+# ---------------------------------
 for N_THREADS in $THREAD_COUNTS; do
     echo "--- Testing with $N_THREADS server threads ---"
 
-    # 3. เริ่ม Server (ใน Background)
+    # เริ่ม Server (ใน Background)
     echo "[Server] Starting server with $N_THREADS threads..."
-    stdbuf -oL ./server_new $N_THREADS > server_log_${N_THREADS}.txt 2>&1 &
+    SERVER_LOG="log/server_${N_THREADS}threads_${TIMESTAMP}.log"
+    stdbuf -oL ../exe/server $N_THREADS > "$SERVER_LOG" 2>&1 &
     SERVER_PID=$!
-    
-    # 4. รอให้ Server พร้อม
+
+    # รอให้ Server พร้อม
     sleep 2
-    
-    # ตรวจสอบว่า Server ยังรันอยู่
+
     if ! ps -p $SERVER_PID > /dev/null; then
-       echo "Server (PID: $SERVER_PID) failed to start. Check server_log_${N_THREADS}.txt"
-       exit 1
+        echo "Server (PID: $SERVER_PID) failed to start. Check $SERVER_LOG"
+        exit 1
     fi
     echo "[Server] Server started (PID: $SERVER_PID)."
 
-    # 5. เริ่มจับเวลา
+    # เริ่มจับเวลา
     start_time=$(date +%s.%N)
 
-    # 6. รัน Client ทั้งหมดพร้อมกัน (รันเป็น Background Job)
+    # รัน Client ทั้งหมดพร้อมกัน
     echo "[Clients] Spawning $NUM_CLIENTS clients..."
-    
-    # 🔧 FIX: บันทึก PID ของ load_tester ทั้งหมด
     CLIENT_PIDS=""
     for i in $(seq 1 $NUM_CLIENTS); do
-        ./load_tester "client_$i" $MESSAGES_PER_CLIENT &
+        ../exe/load_tester "client_$i" $MESSAGES_PER_CLIENT > "log/client_${i}_${N_THREADS}threads_${TIMESTAMP}.log" 2>&1 &
         CLIENT_PIDS="$CLIENT_PIDS $!"
     done
 
-    # 7. รอ Client ทั้งหมดทำงานเสร็จ
+    # รอ Client ทั้งหมดทำงานเสร็จ
     echo "[Clients] Waiting for all clients to finish..."
-    
-    # 🔧 FIX: รอ load_tester ทั้งหมดแยกต่อแยก
     for pid in $CLIENT_PIDS; do
         wait $pid
     done
-    
     echo "[Clients] All clients finished."
 
-    # 8. หยุดจับเวลา
+    # หยุดจับเวลา
     end_time=$(date +%s.%N)
 
-    # 9. หยุด Server
+    # หยุด Server
     echo "[Server] Stopping server (PID: $SERVER_PID)..."
     kill $SERVER_PID
     wait $SERVER_PID 2>/dev/null
     echo "[Server] Server stopped."
-    
-    # 10. คำนวณผลลัพธ์
+
+    # คำนวณผลลัพธ์
     total_time=$(echo "$end_time - $start_time" | bc -l)
     throughput=$(echo "scale=2; $TOTAL_MESSAGES / $total_time" | bc -l)
 
@@ -126,8 +117,8 @@ for N_THREADS in $THREAD_COUNTS; do
     echo "Throughput: $throughput messages/second"
     echo "---------------------------------"
     echo ""
-    
-    # 🔧 เขียนผลลัพธ์ไปยัง result file
+
+    # เขียนผลลัพธ์ไปยัง result file
     {
         echo "--- Test with $N_THREADS Threads ---"
         echo "Total Time Taken: $total_time seconds"
@@ -136,11 +127,14 @@ for N_THREADS in $THREAD_COUNTS; do
         echo "Server Log: $SERVER_LOG"
         echo ""
     } >> "$RESULT_FILE"
-    
+
     # รอ 1 วินาที ก่อนเริ่มรอบถัดไป
     sleep 1
 done
 
+# ---------------------------------
+# 4. สรุปผลการทดสอบ
+# ---------------------------------
 echo "Test finished."
 echo "Results saved to: $RESULT_FILE"
 echo "Logs saved to: log/"

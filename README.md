@@ -48,13 +48,16 @@ Follow these instructions to get a copy of the project up and running on your lo
 ```sh
 git clone https://github.com/SUTTH1NUN/CSS-223_Chatroom-Server.git
 ```
+
 2. Open folder "CSS-223_Chatroom-Server"
-3. Run the following commands. docker compose.yaml
+
+3. Run the following commands.
 ```sh
 cd docker
 ...
 ```
-4. Complie server and client ... to exe
+
+4. Complie server and client by using these commands in terminal.
 ```Server
 g++ -std=c++17 server.cpp -o server -lrt -pthread
 ```
@@ -65,6 +68,7 @@ g++ -std=c++17 client.cpp -o client -lrt -pthread
 ./server
 ./client
 ```
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage
@@ -82,6 +86,7 @@ Once the server is running, clients can connect and use the following commands:
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Performance Testing
+
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 

@@ -7,6 +7,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # 3. อัปเดต package และติดตั้ง gcc, g++, bc
 RUN apt-get update && \
     apt-get install -y gcc g++ bc && \
+    apt-get install -y dos2unix && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

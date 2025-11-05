@@ -44,20 +44,25 @@ Follow these instructions to get a copy of the project up and running on your lo
 * g++ Version 14.1.0
 
 ### Installation
-1. Download this repository.
+1. Open terminal.
+2. Run the following command to clone this repository in the terminal.
 ```
 git clone https://github.com/SUTTH1NUN/CSS-223_Chatroom-Server.git
 ```
 
-2. Open folder "CSS-223_Chatroom-Server"
-
-3. Run the following commands.
-```sh
-cd docker
-...
+3. Open folder "CSS-223_Chatroom-Server" in terminal.
+```
+cd CSS-223_Chatroom-Server
 ```
 
-4. Complie server and client by using these commands in terminal.
+4. Run the following commands to build the container using Docker.
+```sh
+cd docker
+docker build -t myapp:latest .
+docker run --name myapp-container myapp:latest
+```
+
+5. Compile the server and client using these commands in the terminal.
 ```Server
 g++ -std=c++17 server.cpp -o server -lrt -pthread
 ```
@@ -72,7 +77,7 @@ g++ -std=c++17 client.cpp -o client -lrt -pthread
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Usage
-Once the server is running, clients can connect and use the following commands:
+Once the server is running, Each client can connect to the server, set their username, and use the following commands:
 1. /list               - Show all Rooms and member counts
 2. /create <room>      - Create and join room
 3. /join <room>        - Join Room
@@ -104,7 +109,7 @@ Once the server is running, clients can connect and use the following commands:
 This project was successfully completed thanks to the support and guidance of many people.
 We would like to express our sincere gratitude to:
 <ul>
-  <li>Assoc. Prof. Chookiat Warasuchip, instructor of CSS223 Operating System, for valuable guidance and feedback.</li>
+  <li>Assoc. Prof. Chukiat Worasucheep, instructor of CSS223 Operating System, for valuable guidance and feedback.</li>
   <li>Our teammates, for their dedication and collaboration throughout the project.></li>
   <li>Online resources and documentation, which helped deepen our understanding of Message Queues, Threads, and Socket Programming.</li>
 

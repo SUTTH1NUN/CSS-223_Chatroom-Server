@@ -140,7 +140,14 @@ bash payload.sh
 
 4. When you finish testing and want to run the server or client again, use:
 ```
+cd exe
+```
+If you want to run the server, use:
+```
 ./exe/server
+```
+If you want to run the client, use:
+```
 ./exe/client
 ```
 

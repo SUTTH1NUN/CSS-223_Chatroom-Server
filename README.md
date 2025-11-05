@@ -37,7 +37,18 @@ The goal of this project is to develop a Chatroom Server that enables real-time 
 </ul>
 
 ## Design Concept
-
+The Chatroom Server is designed based on the Router–Broadcaster architecture, which separates message routing from message delivery to improve concurrency and scalability.
+<ul>
+  <li>Router Thread — Listens for commands (JOIN, SAY, DM, WHO, LEAVE, QUIT) from the Control Queue, updates registries, and creates broadcast tasks.</li>
+  <li>Broadcaster Pool — A group of worker threads that deliver messages to clients through their Reply Queues, allowing non-blocking message handling.</li>
+</ul>
+The system uses:
+<ul>
+  <li>Message Queues for inter-process communication.</li>
+  <li>Reader–Writer Locks to ensure thread-safe access to the Room Registry and Client Registry.</li>
+  <li>Multi-threading to handle multiple clients and broadcasts concurrently.</li>
+</ul>
+This design demonstrates key OS concepts — IPC, synchronization, and concurrency — while keeping the system simple, modular, and scalable.
 
 ## Getting Started
 Follow these instructions to get a copy of the project up and running on your local machine.

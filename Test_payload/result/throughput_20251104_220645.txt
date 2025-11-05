@@ -1,0 +1,31 @@
+====== Throughput Test Results ======
+Timestamp: 20251104_220645
+Total Clients: 100
+Messages/Client: 50
+Total Messages: 5000
+======================================
+
+--- Test with 1 Threads ---
+Total Time Taken: .144333174 seconds
+Total Messages Sent: 5000
+Throughput: 34642.07 messages/second
+Server Log: log/server_threads_.log
+
+--- Test with 2 Threads ---
+Total Time Taken: .147503119 seconds
+Total Messages Sent: 5000
+Throughput: 33897.58 messages/second
+Server Log: log/server_threads_.log
+
+--- Test with 4 Threads ---
+Total Time Taken: .136537414 seconds
+Total Messages Sent: 5000
+Throughput: 36619.99 messages/second
+Server Log: log/server_threads_.log
+
+--- Test with 8 Threads ---
+Total Time Taken: .151012227 seconds
+Total Messages Sent: 5000
+Throughput: 33109.90 messages/second
+Server Log: log/server_threads_.log
+

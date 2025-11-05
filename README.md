@@ -57,7 +57,6 @@ cd CSS-223_Chatroom-Server
 
 4. Run the following commands to build the container using Docker.
 ```sh
-cd docker
 docker build -t myapp:latest .
 docker run --name myapp-container myapp:latest
 ```

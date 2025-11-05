@@ -18,6 +18,9 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+    <ul>
+        <li><a href="#how-to-test-throungput">How to test throungput</a></li>
+      </ul>
     <li><a href="#performance-testing">Performance Testing</a></li>
     <li><a href="#team-member">Team Members</a></li>
     <li><a href="#acknowledgments">Acknowledgments</a></li>
@@ -76,9 +79,14 @@ g++ -std=c++17 ./client/client.cpp -o ./exe/client -lrt -pthread
 docker exec -it <docker container ID> bash
 ```
 > To check container ID use "docker ps"
-7. 
-```sh
+
+7. Run the commands provided in each terminal as needed.  
+If you want to run the server, use:
+```
 ./exe/server
+```
+If you want to run the client, use:
+```
 ./exe/client
 ```
 
@@ -103,11 +111,29 @@ Once the server is running, Each client can connect to the server, set their use
 ```
 cd ~
 ```
+
 2. Go to Test_Throughtput directory
 ```
 cd Test_Throughtput
 ```
-3.
+
+3. Change file to Unix line endings
+```
+dos2unix payload.sh
+```
+
+4. Run payload.sh
+```
+bash payload.sh
+```
+
+5. When you finish testing and want to run the server or client again, use:
+```
+./exe/server
+./exe/client
+```
+
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ## Performance Testing
 
